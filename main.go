@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,8 +12,10 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/charmbracelet/fang"
 	"github.com/flowchartsman/handlebars/v3"
 	"github.com/radovskyb/watcher"
+	"github.com/spf13/cobra"
 )
 
 type Config struct {
@@ -122,7 +125,7 @@ func compile(conf Config) {
 
 }
 
-func main() {
+func setupConfig() Config {
 	var conf Config
 	_, err := toml.DecodeFile(".gopher-ssg.toml", &conf)
 
@@ -133,11 +136,11 @@ func main() {
 
 		b, err := toml.Marshal(conf)
 		if err != nil {
-			panic(err)
+			log.Fatalln(err)
 		}
 		err = os.WriteFile(".gopher-ssg.toml", b, 0644)
 		if err != nil {
-			return
+			log.Fatalln(err)
 		}
 	}
 
@@ -148,11 +151,11 @@ func main() {
 
 		b, err := toml.Marshal(conf)
 		if err != nil {
-			panic(err)
+			log.Fatalln(err)
 		}
 		err = os.WriteFile(".gopher-ssg.toml", b, 0644)
 		if err != nil {
-			return
+			log.Fatalln(err)
 		}
 	}
 
@@ -170,11 +173,11 @@ func main() {
 
 		b, err := toml.Marshal(conf)
 		if err != nil {
-			panic(err)
+			log.Fatalln(err)
 		}
 		err = os.WriteFile(".gopher-ssg.toml", b, 0644)
 		if err != nil {
-			return
+			log.Fatalln(err)
 		}
 	}
 
@@ -194,6 +197,10 @@ func main() {
 		_ = os.Mkdir(conf.StaticPath, 0755)
 	}
 
+	return conf
+}
+
+func watchAndServe(conf Config) {
 	compile(conf)
 
 	w := watcher.New()
@@ -277,4 +284,34 @@ func main() {
 	if err := w.Start(time.Millisecond * 100); err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func main() {
+	cmd := &cobra.Command{
+		Use:   "gopher-ssg",
+		Short: "Create wonderfully simple static websites with nothing more than you need",
+	}
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "build",
+		Short: "Builds the static website once",
+		Run: func(cmd *cobra.Command, args []string) {
+			conf := setupConfig()
+			compile(conf)
+		},
+	})
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "serve",
+		Short: "Watches for file changes auto-compiles and serves the output",
+		Run: func(cmd *cobra.Command, args []string) {
+			conf := setupConfig()
+			watchAndServe(conf)
+		},
+	})
+
+	if err := fang.Execute(context.Background(), cmd); err != nil {
+		os.Exit(1)
+	}
+
 }
