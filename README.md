@@ -5,6 +5,7 @@ Currently this only supports handlebar, but I'm planning to integrate a few more
 ![CLI Demo](/docs/demo.gif)
 
 Sample Project Structure:
+
 ![Project Structure](/docs/sample-directory-layout.png)
 
 Default Configuration would look like this:
