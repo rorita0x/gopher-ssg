@@ -121,6 +121,8 @@ func compile(conf Config) {
 		}
 	}
 
+	// TODO: Generate sitemap.xml
+
 	log.Println("Finished writing to output directory.")
 
 }
